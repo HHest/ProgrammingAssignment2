@@ -1,59 +1,71 @@
-## makeCacheMatrix(m) stores the matrix m and reports back 
-## the cached result of some (undetermined) matrix operation, once
-## the cache has been set.
+## makeCacheMatrix: stores a matrix and, after the first run, 
+## reports back the cached result of a particular matrix 
+## operation done on that matrix.
 ##
 ## cacheSolve uses the makeCacheMatrix facility to cache
 ## the result of the "solve" matrix operation, and subsequently 
-## to reuse that result (instead of recalculating).
+## to reuse that cached result (instead of recalculating).
 ##
 ## testme is used as a sanity check of the implementation.
 ##
 
 
-## Provides a mechanism to cache the result of some matrix operation
-## (NB: Although I'm sure there are situations where the "set" function would 
-## be useful, we don't use it in this exercise.)
+## Provides a mechanism to cache the result of some matrix operation.
+## After the calculation has been done once, the result should be saved
+## into the cache using the $setcache fn. The fn $getcache will return
+## this result on subsequent calls.
+##
+## (NB: Although I'm sure there are situations where the "set" function
+## would be useful, we don't use it in this exercise.)
 ## 
-makeCacheMatrix <- function(x = matrix()) {
+makeCacheMatrix <- function( x = matrix() ) {
   cache <- NULL # start out with no cache
-  # report back the underlying matrix
+  
+  # fn to report back the underlying matrix
   get <- function() x
-  # set the underlying matrix to some new matrix
-  set <- function(xNew) {
+  
+  # fn to set the underlying matrix to some new matrix
+  set <- function( xNew ) {
     x <<- xNew # set to new matrix
-    cache <<- NULL # clear cache
+    cache <<- NULL # also clear cache
   }
-  # set the cache, when the calculated result is available
-  setcache <- function(calculatedResult) cache <<- calculatedResult
-  # report the cached result of a prior calculation
+  
+  # fn to set the cache, when the calculated result is available
+  setcache <- function( calculatedResult ) cache <<- calculatedResult
+  
+  # fn to report the cached result of a prior calculation
   getcache <- function() cache
-  # list of get/set fns
-  list(get = get, 
-       set = set,
-       setcache = setcache,
-       getcache = getcache)
+  
+  # return the list of get/set fns
+  list( get = get, 
+        set = set,
+        setcache = setcache,
+        getcache = getcache )
 }
 
 
-## Solve for the inverse of a matrix "xCache", with caching of the 
-## result for future use.
-## "xCache" must be constructed from makeCacheMatrix(x).
+## Solve for the inverse of a matrix "xCache". The result from
+## the initial calculation will be cached for future use.
 ##
-cacheSolve <- function(xCache, ...) {
+## "xCache" must be created with makeCacheMatrix(x).
+##
+cacheSolve <- function( xCache, ... ) {
   ## Return a matrix that is the inverse of 
   ## xCache <- makeCacheMatrix(x)
   #
+  # Attempt to get the cached result
   cache <- xCache$getcache()
-  if(!is.null(cache)) {
+  if( !is.null( cache ) ) {
     message("getting cached data")
-    return(cache)
+    return( cache )
   }
-  # get the underlying matrix
+  # The cache is empty, so do the work...
+  # First, get the underlying matrix
   x <- xCache$get()
-  # perform the "solve" calculation
-  calculatedResult <- solve(x, ...)
-  # save the result
-  xCache$setcache(calculatedResult)
+  # Then, perform the "solve" calculation
+  calculatedResult <- solve( x, ... )
+  # Finally, save the result into the cache.
+  xCache$setcache( calculatedResult )
   calculatedResult
 }
 
